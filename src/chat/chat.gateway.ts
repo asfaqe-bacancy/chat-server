@@ -97,14 +97,22 @@ import {
         return { success: false, message: 'Recipient not found' };
       }
   
-      // Send to recipient
-      this.server.to(recipient.socketId).emit('privateMessage', {
+      const messageData = {
         from: sender.username,
+        to: data.to,
         message: data.message,
         timestamp: new Date().toISOString(),
-      });
+      };
   
-      return { success: true, message: 'Message sent' };
+      // Send to recipient
+      this.server.to(recipient.socketId).emit('privateMessage', messageData);
+      
+      // Also return the message to sender as acknowledgment
+      return { 
+        success: true, 
+        message: 'Message sent',
+        data: messageData
+      };
     }
   
     // Create or join a group
@@ -200,15 +208,22 @@ import {
         return { success: false, message: 'You are not a member of this group' };
       }
   
-      // Send to all group members
-      this.server.to(`group:${data.group}`).emit('groupMessage', {
-        group: data.group,
+      const messageData = {
         from: sender.username,
+        group: data.group,
         message: data.message,
         timestamp: new Date().toISOString(),
-      });
+      };
   
-      return { success: true, message: 'Group message sent' };
+      // Send to all members of the group
+      this.server.to(`group:${data.group}`).emit('groupMessage', messageData);
+  
+      // Return the message data as acknowledgment
+      return { 
+        success: true, 
+        message: 'Message sent',
+        data: messageData
+      };
     }
   
     // Get list of online users
